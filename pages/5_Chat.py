@@ -14,6 +14,7 @@ if st.sidebar.button("Results"):
 st.sidebar.title("Chat with TalentScout Bot")
 st.sidebar.divider()
 st.markdown('<h1 style="text-align: center;">TalentScout Bot</h1>', unsafe_allow_html=True)
+st.divider()
 API_URL = "https://router.huggingface.co/v1/chat/completions"
 try:
     HF_TOKEN = st.secrets["HF_TOKEN"]
