@@ -2,6 +2,7 @@ import streamlit as st
 import requests
 import json
 import time 
+
 st.markdown("""
         <style>
         .block-container {
@@ -9,12 +10,16 @@ st.markdown("""
         }
         </style>
         """, unsafe_allow_html=True)
+
 if st.sidebar.button("Results"):
     st.switch_page("pages/6_Result.py")
 st.sidebar.title("Chat with TalentScout Bot")
 st.sidebar.divider()
+
+
 st.markdown('<h1 style="text-align: center;">TalentScout Bot</h1>', unsafe_allow_html=True)
 st.divider()
+
 API_URL = "https://router.huggingface.co/v1/chat/completions"
 try:
     HF_TOKEN = st.secrets["HF_TOKEN"]
@@ -24,6 +29,7 @@ except FileNotFoundError:
 headers = {"Authorization": f"Bearer {HF_TOKEN}"}
 
 def get_response_stream(chat_history):
+    """Streams the chatbot's response from the API."""
     payload = {
         "model": "meta-llama/Llama-3.1-8B-Instruct:cerebras",
         "messages": chat_history,
@@ -50,13 +56,33 @@ def get_response_stream(chat_history):
 
 if "messages" not in st.session_state:
     st.session_state.messages = []
+
+if len(st.session_state.messages)==0:
+    skills_formatted = ", ".join(st.session_state.get('skills', []))
+    greeting_message = (
+        f"Hello {st.session_state['first']} {st.session_state['second']}!\n\n"
+        "I have your details:\n"
+        f"- **Name:** {st.session_state['first']}\n"
+        f"- **Age:** {st.session_state['age']}\n"
+        f"- **Experience:** {st.session_state['years']} years\n"
+        f"- **Positions:** {st.session_state['positions']}\n"
+        f"- **Skills:** {skills_formatted}\n\n"
+        "Let's get started with your technical assessment based on your profile. Shall we begin?"
+    )
+    st.session_state.messages.append({"role": "assistant", "content": greeting_message})
+
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
+system=("all those details are of the user dont get confused and ask relevant questions based on the skills and experience of the user")
+st.session_state.messages[0]["content"]= system + "\n\n" + st.session_state.messages[0]["content"]
 if prompt := st.chat_input("What would you like to ask?"):
     st.session_state.messages.append({"role": "user", "content": prompt})
     with st.chat_message("user"):
         st.markdown(prompt)
+        
     with st.chat_message("assistant"):
         full_response = st.write_stream(get_response_stream(st.session_state.messages))
+        with open("response.txt", "a") as f:
+            f.write(str(st.session_state.messages) )
     st.session_state.messages.append({"role": "assistant", "content": full_response})

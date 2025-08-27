@@ -18,4 +18,11 @@ with st.form(key="details"):
     positions=st.multiselect("Select your preferred job positions", options=["Frontend Developer", "Backend Developer", "Full Stack Developer", "Data Scientist", "DevOps Engineer", "Mobile App Developer", "AI/ML Engineer", "Cloud Engineer"])
     skills=st.text_area("List your tech stack (comma separated)")
     if st.form_submit_button("Submit"):
+        st.session_state['first']= first
+        st.session_state['second']= second
+        st.session_state['number']= number
+        st.session_state['age']= age
+        st.session_state['years']= years
+        st.session_state['positions']= positions
+        st.session_state['skills']= skills.strip().split(',')
         st.switch_page("pages/5_Chat.py")
