@@ -1,8 +1,10 @@
 import streamlit as st
 import requests
 import json
-
-
+if st.sidebar.button("Results"):
+    st.switch_page("pages/6_Result.py")
+st.sidebar.title("Chat with TalentScout Bot")
+st.sidebar.divider()
 st.markdown("<h1 style='text-align: center;'>TalentScout Bot</h1>", unsafe_allow_html=True)
 API_URL = "https://router.huggingface.co/v1/chat/completions"
 try:
