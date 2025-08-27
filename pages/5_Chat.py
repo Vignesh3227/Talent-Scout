@@ -1,14 +1,22 @@
 import streamlit as st
 import requests
 import json
+import time 
+st.markdown("""
+        <style>
+        .block-container {
+            padding-top: 2rem;
+        }
+        </style>
+        """, unsafe_allow_html=True)
 if st.sidebar.button("Results"):
     st.switch_page("pages/6_Result.py")
 st.sidebar.title("Chat with TalentScout Bot")
 st.sidebar.divider()
-st.markdown("<h1 style='text-align: center;'>TalentScout Bot</h1>", unsafe_allow_html=True)
+st.markdown('<h1 style="text-align: center;">TalentScout Bot</h1>', unsafe_allow_html=True)
 API_URL = "https://router.huggingface.co/v1/chat/completions"
 try:
-    HF_TOKEN=st.secrets["HF_TOKEN"]
+    HF_TOKEN = st.secrets["HF_TOKEN"]
 except FileNotFoundError:
     st.error("HF_TOKEN secret not found. Please create a .streamlit/secrets.toml file with your Hugging Face token.")
     st.stop()
@@ -16,9 +24,9 @@ headers = {"Authorization": f"Bearer {HF_TOKEN}"}
 
 def get_response_stream(chat_history):
     payload = {
-        "model":"meta-llama/Llama-3.1-8B-Instruct:cerebras",
-        "messages":chat_history,
-        "stream":True
+        "model": "meta-llama/Llama-3.1-8B-Instruct:cerebras",
+        "messages": chat_history,
+        "stream": True
     }
     try:
         with requests.post(API_URL, headers=headers, json=payload, stream=True) as response:
@@ -30,14 +38,17 @@ def get_response_stream(chat_history):
                     break
                 json_data = json.loads(line.decode("utf-8").lstrip("data:").rstrip("/n"))
                 if "choices" in json_data and json_data["choices"][0]["delta"].get("content"):
-                    yield json_data["choices"][0]["delta"]["content"]
+                    content_chunk = json_data["choices"][0]["delta"]["content"]
+                    for char in content_chunk:
+                        yield char
+                        time.sleep(0.01)
     except requests.exceptions.RequestException as e:
         st.error(f"API request failed: {e}")
     except json.JSONDecodeError as e:
         st.error(f"Failed to decode JSON from API response: {e}")
 
 if "messages" not in st.session_state:
-    st.session_state.messages=[]
+    st.session_state.messages = []
 for message in st.session_state.messages:
     with st.chat_message(message["role"]):
         st.markdown(message["content"])
