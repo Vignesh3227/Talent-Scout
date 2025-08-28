@@ -2,6 +2,7 @@ import streamlit as st
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_huggingface import ChatHuggingFace
 from langchain_huggingface import HuggingFaceEndpoint
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 st.set_page_config(page_title="TalentScout AI", layout="centered")
 
@@ -23,23 +24,23 @@ llm = HuggingFaceEndpoint(
     provider="auto"
 )
 chat_model = ChatHuggingFace(llm=llm)
-from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
 prompt_template = ChatPromptTemplate.from_messages([
     MessagesPlaceholder(variable_name="history"),
 ])
-
 chain = prompt_template | chat_model
 
 if "history" not in st.session_state:
     st.session_state.history = []
+    st.session_state.interview_state = "IN_PROGRESS"
+    
     template = f'''You are a friendly but professional AI talent scout named Alex. Your goal is to conduct a technical interview for the company PGAGI.
 
 **Your Instructions:**
 1.  **Role:** You are an interviewer. Keep your questions strictly focused on the candidate's technical skills.
 2.  **Process:** Ask technical questions one by one. Wait for the user's response before asking the next question.
 3.  **Scoring:** Internally, keep track of the user's performance. You don't need to show a score.
-4.  **Conclusion:** After 5-7 questions, conclude the interview with a brief, constructive summary and a preliminary recommendation.
+4.  **Conclusion:** After 5-7 questions, conclude the interview. Start your final message with the exact phrase: "Thank you for your time. This concludes our interview." This is a critical instruction.
 
 **Candidate Details:**
 -   **Name:** {st.session_state.get('first', 'N/A')} {st.session_state.get('second', '')}
@@ -49,7 +50,6 @@ if "history" not in st.session_state:
 
 Start now by generating a friendly welcome message and then ask your first technical question based on the candidate's profile.
 '''
-
     system_message = SystemMessage(content=template)
     st.session_state.history.append(system_message)
     
@@ -65,14 +65,50 @@ for message in st.session_state.history:
         with st.chat_message("ai"):
             st.markdown(message.content)
 
-if prompt := st.chat_input("Type your response here..."):
+if prompt := st.chat_input("Type your response here...", disabled=(st.session_state.interview_state == "CONCLUDED")):
     user_message = HumanMessage(content=prompt)
-    st.session_state.history.append(user_message)
+    
     with st.chat_message("user"):
         st.markdown(prompt)
 
-    with st.chat_message("ai"):
-        with st.spinner("Thinking..."):
-            ai_response = chain.invoke({"history": st.session_state.history})
-            st.markdown(ai_response.content)
-    st.session_state.history.append(ai_response)
+    with st.spinner("Analyzing..."):
+        last_ai_question = ""
+        for msg in reversed(st.session_state.history):
+            if isinstance(msg, AIMessage):
+                last_ai_question = msg.content
+                break
+
+        guardrail_prompt_content = f"""
+You are an interview moderator AI. Your only job is to classify a user's response.
+The interviewer asked: '{last_ai_question}'
+The user responded: '{prompt}'
+
+Is the user's response on-topic or off-topic?
+- An on-topic response attempts to answer the question or asks for a hint.
+- An off-topic response changes the subject or asks an unrelated question.
+
+Your response MUST be a single word: either ON_TOPIC or OFF_TOPIC. Do not add any explanation or punctuation.
+"""
+        guardrail_message = SystemMessage(content=guardrail_prompt_content)
+        guardrail_response = chat_model.invoke([guardrail_message])
+        
+        moderator_decision = guardrail_response.content.strip().upper()
+
+    if "ON_TOPIC" in moderator_decision:
+        st.session_state.history.append(user_message)
+        with st.chat_message("ai"):
+            with st.spinner("Thinking..."):
+                ai_response = chain.invoke({"history": st.session_state.history})
+                st.markdown(ai_response.content)
+        
+        st.session_state.history.append(ai_response)
+        
+        if "This concludes our interview" in ai_response.content:
+            st.session_state.interview_state = "CONCLUDED"
+            st.info("This interview has now ended. You can no longer send messages.")
+            st.rerun()
+
+    else: 
+        with st.chat_message("ai"):
+            canned_response = "That's an interesting point, but let's please stay focused on the technical questions. Could you tell me about the last question I asked?"
+            st.markdown(canned_response)
