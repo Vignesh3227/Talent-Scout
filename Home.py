@@ -16,10 +16,10 @@ st.markdown("""
 
 ##### **How it works:**
 
-#####  **Introduce Yourself:** The chatbot will ask for some basic information to get to know you.
+#####  **Introduce Yourself:** Fill in the form with the basic required details.
 #####  **Share Your Expertise:** Tell us about your tech stack (languages, frameworks, tools).
 #####  **Showcase Your Knowledge:** Answer a few technical questions tailored specifically to your skills.
-
+#####  **Get a comprehensive report:** You will get a complete report based on your interview to know your strengths and weaknesses.
 ##### This entire process should only take a few minutes. Once completed, our human recruitment team will review your profile and be in touch about the next steps.
 """)
 st.divider()
