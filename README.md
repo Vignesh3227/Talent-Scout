@@ -1,8 +1,8 @@
-# Technical Skill Evaluator
+# TalentScout
 
 ## Overview
 
-Technical Skill Evaluator is a web application built with Streamlit that allows users to sign up, chat, and receive results based on their technical skills. The project is organized to provide an interactive evaluation experience, leveraging Python and several data science and web libraries.
+TalentScout is a web application built with Streamlit that allows users to sign up, chat, and receive results based on their technical skills. The project is organized to provide an interactive evaluation experience, leveraging Python and several data science and web libraries.
 
 ## Features
 
