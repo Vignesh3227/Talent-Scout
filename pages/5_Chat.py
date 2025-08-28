@@ -1,88 +1,78 @@
 import streamlit as st
-import requests
-import json
-import time 
+from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
+from langchain_huggingface import ChatHuggingFace
+from langchain_huggingface import HuggingFaceEndpoint
+
+st.set_page_config(page_title="TalentScout AI", layout="centered")
 
 st.markdown("""
-        <style>
-        .block-container {
-            padding-top: 2rem;
-        }
-        </style>
-        """, unsafe_allow_html=True)
+    <style>
+    .block-container {
+        padding-top: 1.5rem; 
+    }
+    </style>
+    """, unsafe_allow_html=True)
 
-if st.sidebar.button("Results"):
-    st.switch_page("pages/6_Result.py")
-st.sidebar.title("Chat with TalentScout Bot")
-st.sidebar.divider()
-
-
-st.markdown('<h1 style="text-align: center;">TalentScout Bot</h1>', unsafe_allow_html=True)
+st.markdown("<h1 style='text-align: center;'>TalentScout AI Interviewer</h1>", unsafe_allow_html=True)
 st.divider()
 
-API_URL = "https://router.huggingface.co/v1/chat/completions"
-try:
-    HF_TOKEN = st.secrets["HF_TOKEN"]
-except FileNotFoundError:
-    st.error("HF_TOKEN secret not found. Please create a .streamlit/secrets.toml file with your Hugging Face token.")
-    st.stop()
-headers = {"Authorization": f"Bearer {HF_TOKEN}"}
+llm = HuggingFaceEndpoint(
+    repo_id="meta-llama/Meta-Llama-3.1-8B-Instruct",
+    max_new_tokens=512,
+    temperature=0.1,
+    provider="auto"
+)
+chat_model = ChatHuggingFace(llm=llm)
+from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
-def get_response_stream(chat_history):
-    """Streams the chatbot's response from the API."""
-    payload = {
-        "model": "meta-llama/Llama-3.1-8B-Instruct:cerebras",
-        "messages": chat_history,
-        "stream": True
-    }
-    try:
-        with requests.post(API_URL, headers=headers, json=payload, stream=True) as response:
-            response.raise_for_status()
-            for line in response.iter_lines():
-                if not line.startswith(b"data:"):
-                    continue
-                if line.strip() == b"data: [DONE]":
-                    break
-                json_data = json.loads(line.decode("utf-8").lstrip("data:").rstrip("/n"))
-                if "choices" in json_data and json_data["choices"][0]["delta"].get("content"):
-                    content_chunk = json_data["choices"][0]["delta"]["content"]
-                    for char in content_chunk:
-                        yield char
-                        time.sleep(0.01)
-    except requests.exceptions.RequestException as e:
-        st.error(f"API request failed: {e}")
-    except json.JSONDecodeError as e:
-        st.error(f"Failed to decode JSON from API response: {e}")
+prompt_template = ChatPromptTemplate.from_messages([
+    MessagesPlaceholder(variable_name="history"),
+])
 
-if "messages" not in st.session_state:
-    st.session_state.messages = []
+chain = prompt_template | chat_model
 
-if len(st.session_state.messages)==0:
-    skills_formatted = ", ".join(st.session_state.get('skills', []))
-    greeting_message = (
-        f"Hello {st.session_state['first']} {st.session_state['second']}!\n\n"
-        "I have your details:\n"
-        f"- **Name:** {st.session_state['first']}\n"
-        f"- **Age:** {st.session_state['age']}\n"
-        f"- **Experience:** {st.session_state['years']} years\n"
-        f"- **Positions:** {st.session_state['positions']}\n"
-        f"- **Skills:** {skills_formatted}\n\n"
-        "Let's get started with your technical assessment based on your profile. Shall we begin?"
-    )
-    st.session_state.messages.append({"role": "assistant", "content": greeting_message})
+if "history" not in st.session_state:
+    st.session_state.history = []
+    template = f'''You are a friendly but professional AI talent scout named Alex. Your goal is to conduct a technical interview for the company PGAGI.
 
-for message in st.session_state.messages:
-    with st.chat_message(message["role"]):
-        st.markdown(message["content"])
-system=("all those details are of the user dont get confused and ask relevant questions based on the skills and experience of the user")
-st.session_state.messages[0]["content"]= system + "\n\n" + st.session_state.messages[0]["content"]
-if prompt := st.chat_input("What would you like to ask?"):
-    st.session_state.messages.append({"role": "user", "content": prompt})
+**Your Instructions:**
+1.  **Role:** You are an interviewer. Keep your questions strictly focused on the candidate's technical skills.
+2.  **Process:** Ask technical questions one by one. Wait for the user's response before asking the next question.
+3.  **Scoring:** Internally, keep track of the user's performance. You don't need to show a score.
+4.  **Conclusion:** After 5-7 questions, conclude the interview with a brief, constructive summary and a preliminary recommendation.
+
+**Candidate Details:**
+-   **Name:** {st.session_state.get('first', 'N/A')} {st.session_state.get('second', '')}
+-   **Experience:** {st.session_state.get('years', 'N/A')} years
+-   **Applying for:** {st.session_state.get('positions', 'N/A')}
+-   **Stated Skills:** {st.session_state.get('skills', 'N/A')}
+
+Start now by generating a friendly welcome message and then ask your first technical question based on the candidate's profile.
+'''
+
+    system_message = SystemMessage(content=template)
+    st.session_state.history.append(system_message)
+    
+    with st.spinner("Alex is preparing your interview..."):
+        initial_response = chain.invoke({"history": st.session_state.history})
+        st.session_state.history.append(initial_response)
+
+for message in st.session_state.history:
+    if isinstance(message, HumanMessage):
+        with st.chat_message("user"):
+            st.markdown(message.content)
+    elif isinstance(message, AIMessage):
+        with st.chat_message("ai"):
+            st.markdown(message.content)
+
+if prompt := st.chat_input("Type your response here..."):
+    user_message = HumanMessage(content=prompt)
+    st.session_state.history.append(user_message)
     with st.chat_message("user"):
         st.markdown(prompt)
-        
-    with st.chat_message("assistant"):
-        full_response = st.write_stream(get_response_stream(st.session_state.messages))
-        with open("response.txt", "a") as f:
-            f.write(str(st.session_state.messages) )
-    st.session_state.messages.append({"role": "assistant", "content": full_response})
+
+    with st.chat_message("ai"):
+        with st.spinner("Thinking..."):
+            ai_response = chain.invoke({"history": st.session_state.history})
+            st.markdown(ai_response.content)
+    st.session_state.history.append(ai_response)
