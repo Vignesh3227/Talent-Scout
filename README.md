@@ -1,8 +1,10 @@
-# Technical Skill Evaluator
+# TalentScout
 
 ## Overview
 
-Technical Skill Evaluator is a web application built with Streamlit that allows users to sign up, chat, and receive results based on their technical skills. The project is organized to provide an interactive evaluation experience, leveraging Python and several data science and web libraries.
+TalentScout is a web application built with Streamlit that allows users to sign up, chat, and receive results based on their technical skills. The project is organized to provide an interactive evaluation experience, leveraging Python and several data science and web libraries.
+
+Link to use the app https://talent-sc0ut.streamlit.app/
 
 ## Features
 
@@ -21,6 +23,9 @@ pages/
   1_Information_Signup.py  # Signup page logic
   2_Chat.py                # Chat interface logic
   3_Result.py              # Result display logic
+.streamlit/
+  config.toml  # custom theme
+  secrets.toml # add your huggingface API key here
 ```
 
 ## Setup Instructions
@@ -28,7 +33,7 @@ pages/
 1. **Clone the repository**
    ```powershell
    git clone <repo-url>
-   cd "Technical skill evaluator"
+   cd "Talent Scout"
    ```
 2. **Create and activate a virtual environment**
    (If not already present)
@@ -48,7 +53,7 @@ pages/
 ## Usage
 
 - Access the app in your browser at the provided local URL after running the Streamlit command.
-- Navigate through the signup, chat, and result pages using the sidebar or navigation buttons.
+- Navigate through the landing page, form, chat, and result pages using the sidebar or navigation buttons.
 
 ## Dependencies
 
