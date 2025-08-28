@@ -28,7 +28,7 @@ pages/
 1. **Clone the repository**
    ```powershell
    git clone <repo-url>
-   cd "Technical skill evaluator"
+   cd "Talent Scout"
    ```
 2. **Create and activate a virtual environment**
    (If not already present)
