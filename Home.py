@@ -23,13 +23,7 @@ st.markdown("""
 ##### This entire process should only take a few minutes. Once completed, our human recruitment team will review your profile and be in touch about the next steps.
 """)
 st.divider()
-signup, login= st.columns(2, gap="medium")
-
-with signup:
-    st.write("**New here? Sign up to get started!**")
-    if st.button("**Sign Up**", key="signup_button"):
-        st.switch_page("pages/2_SignUp.py")
-with login:
-    st.write("**Already have an account? Log in to continue!**")
-    if st.button("**Log In**", key="login_button"):
-        st.switch_page("pages/1_Login.py")
+st.markdown("<p style='text-align: center;'><b>CLICK HERE TO START!<b></p>", unsafe_allow_html=True)
+with st.container(horizontal_alignment="center"):
+    if st.button("**Start Now**", key="signup_button"):
+        st.switch_page("pages/1_Information_Signup.py")

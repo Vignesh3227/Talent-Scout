@@ -25,4 +25,4 @@ with st.form(key="details"):
         st.session_state['years']= years
         st.session_state['positions']= positions
         st.session_state['skills']= skills.strip().split(',')
-        st.switch_page("pages/5_Chat.py")
+        st.switch_page("pages/2_Chat.py")

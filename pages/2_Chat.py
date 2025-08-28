@@ -1,10 +1,11 @@
 import streamlit as st
+import time
 from langchain_core.messages import HumanMessage, SystemMessage, AIMessage
 from langchain_huggingface import ChatHuggingFace
 from langchain_huggingface import HuggingFaceEndpoint
 from langchain_core.prompts import ChatPromptTemplate, MessagesPlaceholder
 
-st.set_page_config(page_title="TalentScout AI", layout="centered")
+
 
 st.markdown("""
     <style>
@@ -84,7 +85,7 @@ The interviewer asked: '{last_ai_question}'
 The user responded: '{prompt}'
 
 Is the user's response on-topic or off-topic?
-- An on-topic response attempts to answer the question or asks for a hint.
+- An on-topic response attempts to answer the question or asks for a hint or says I dont know.
 - An off-topic response changes the subject or asks an unrelated question.
 
 Your response MUST be a single word: either ON_TOPIC or OFF_TOPIC. Do not add any explanation or punctuation.
@@ -105,8 +106,9 @@ Your response MUST be a single word: either ON_TOPIC or OFF_TOPIC. Do not add an
         
         if "This concludes our interview" in ai_response.content:
             st.session_state.interview_state = "CONCLUDED"
-            st.info("This interview has now ended. You can no longer send messages.")
-            st.rerun()
+            st.success("Interview complete! Redirecting to the results page...")
+            time.sleep(8) 
+            st.switch_page("pages/3_Result.py")
 
     else: 
         with st.chat_message("ai"):
