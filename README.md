@@ -4,6 +4,8 @@
 
 TalentScout is a web application built with Streamlit that allows users to sign up, chat, and receive results based on their technical skills. The project is organized to provide an interactive evaluation experience, leveraging Python and several data science and web libraries.
 
+Link to use the app https://talent-sc0ut.streamlit.app/
+
 ## Features
 
 - **Information Signup Page**: A simple form that collects user data for evaluation.
