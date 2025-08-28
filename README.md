@@ -23,6 +23,9 @@ pages/
   1_Information_Signup.py  # Signup page logic
   2_Chat.py                # Chat interface logic
   3_Result.py              # Result display logic
+.streamlit/
+  config.toml  # custom theme
+  secrets.toml # add your huggingface API key here
 ```
 
 ## Setup Instructions
