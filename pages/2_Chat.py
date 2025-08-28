@@ -19,7 +19,7 @@ st.markdown("<h1 style='text-align: center;'>TalentScout AI Interviewer</h1>", u
 st.divider()
 
 llm = HuggingFaceEndpoint(
-    repo_id="meta-llama/Meta-Llama-3.1-8B-Instruct",
+    repo_id="Qwen/Qwen3-30B-A3B-Instruct-2507",
     max_new_tokens=512,
     temperature=0.1,
     provider="auto"

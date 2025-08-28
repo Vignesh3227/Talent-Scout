@@ -20,7 +20,7 @@ st.divider()
 
 try:
     llm=HuggingFaceEndpoint(
-        repo_id="meta-llama/Meta-Llama-3.1-8B-Instruct",
+        repo_id="Qwen/Qwen3-30B-A3B-Instruct-2507",
         max_new_tokens=1024, 
         temperature=0.1,
         provider="auto"
