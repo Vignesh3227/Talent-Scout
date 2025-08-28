@@ -53,7 +53,7 @@ pages/
 ## Usage
 
 - Access the app in your browser at the provided local URL after running the Streamlit command.
-- Navigate through the signup, chat, and result pages using the sidebar or navigation buttons.
+- Navigate through the landing page, form, chat, and result pages using the sidebar or navigation buttons.
 
 ## Dependencies
 
